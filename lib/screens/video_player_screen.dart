@@ -16,40 +16,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final FocusNode urlFocusNode = FocusNode();
   final formKey = GlobalKey<FormState>();
 
-  bool isLoading = false;
-  String statusMessage = '';
-  String? selectedQuality;
+  // ValueNotifiers para monitorar estados
+  final ValueNotifier<bool> isLoading = ValueNotifier(false);
+  final ValueNotifier<String> statusMessage = ValueNotifier('');
+  final ValueNotifier<String?> selectedQuality = ValueNotifier(null);
   List<String> qualityOptions = ['Audio', '360p', '480p', '720p', '1080p'];
 
   @override
   void dispose() {
     urlController.dispose();
     urlFocusNode.dispose();
+    isLoading.dispose();
+    statusMessage.dispose();
+    selectedQuality.dispose();
     super.dispose();
   }
 
   Future<void> handleDownload() async {
-    if (urlController.text.isEmpty || selectedQuality == null) {
-      setState(() {
-        statusMessage = 'Please provide a URL and select a quality';
-      });
+    if (urlController.text.isEmpty || selectedQuality.value == null) {
+      statusMessage.value = 'Please provide a URL and select a quality';
       return;
     }
 
-    setState(() {
-      isLoading = true;
-      statusMessage = 'Downloading...';
-    });
+    isLoading.value = true;
+    statusMessage.value = 'Downloading...';
 
     String resultMessage = await VideoDownloader.downloadVideo(
       urlController.text,
-      selectedQuality!,
+      selectedQuality.value!,
     );
 
-    setState(() {
-      statusMessage = resultMessage;
-      isLoading = false;
-    });
+    statusMessage.value = resultMessage;
+    isLoading.value = false;
   }
 
   @override
@@ -83,24 +81,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           urlFocusNode: urlFocusNode,
                         ),
                         const SizedBox(height: 16),
-                        DropdownButton<String>(
-                          value: selectedQuality,
-                          hint: const Text('Select Quality'),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedQuality = value;
-                            });
-                          },
-                          items: qualityOptions.map((quality) {
-                            return DropdownMenuItem<String>(
-                              value: quality,
-                              child: Text(quality),
+                        ValueListenableBuilder<String?>(
+                          valueListenable: selectedQuality,
+                          builder: (context, value, child) {
+                            return DropdownButton<String>(
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                              value: qualityOptions.last,
+                              onChanged: (newValue) {
+                                selectedQuality.value = newValue;
+                              },
+                              items: qualityOptions.map((quality) {
+                                return DropdownMenuItem<String>(
+                                  value: quality,
+                                  child: Text(quality),
+                                );
+                              }).toList(),
                             );
-                          }).toList(),
+                          },
                         ),
                         const SizedBox(width: 8),
                         SizedBox(
                           height: 52,
+                          width: 200,
                           child: MyButton(
                             onTap: handleDownload,
                             placeholder: 'Download',
@@ -111,18 +116,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (isLoading) const CircularProgressIndicator(),
-                  if (statusMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        statusMessage,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
+                  // Exibir o indicador de progresso
+                  ValueListenableBuilder<bool>(
+                    valueListenable: isLoading,
+                    builder: (context, value, child) {
+                      return value
+                          ? const CircularProgressIndicator()
+                          : Container();
+                    },
+                  ),
+                  // Exibir mensagem de status
+                  ValueListenableBuilder<String>(
+                    valueListenable: statusMessage,
+                    builder: (context, value, child) {
+                      return value.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                value,
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            )
+                          : Container();
+                    },
+                  ),
                 ],
               ),
             ),

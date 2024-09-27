@@ -28,6 +28,7 @@ class MyButton extends StatelessWidget {
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             placeholder, // Aqui exibimos o valor do placeholder
