@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSFileAccessUsageDescription</key>
+	<string>App precisa acessar arquivos para salvar o vídeo baixado.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>O app precisa acessar a pasta Documentos para salvar o vídeo baixado.</string>
 </dict>
 </plist>

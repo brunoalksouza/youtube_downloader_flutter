@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class VideoDownloader {
   static Future<String> downloadVideo(String videoUrl, String quality) async {
@@ -33,10 +34,11 @@ class VideoDownloader {
             manifest.videoOnly.where((e) => e.qualityLabel == '1080p').first;
       }
 
-      // Ask for the location to save the file
+      // If the user hasn't chosen a path yet, use the default documents directory
       String? savePath = await FilePicker.platform.getDirectoryPath();
       if (savePath == null) {
-        return 'No folder selected';
+        Directory directory = await getApplicationDocumentsDirectory();
+        savePath = directory.path;
       }
 
       // Combine the path and file name
